@@ -1,14 +1,14 @@
 name: Controle Luminosite Kiosk
 
 on:
-  schedule:
-    - cron: '0 6 * * *'  # Matin (UTC)
-    - cron: '0 18 * * *' # Soir (UTC)
-  workflow_dispatch: # Bouton pour tester à la main
+  workflow_dispatch: # Permet le déclenchement manuel
 
 jobs:
   update-brightness:
     runs-on: ubuntu-latest
+    env:
+      # Supprime l'avertissement de dépréciation pour 2026
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true 
     steps:
       - name: Recuperer le code
         uses: actions/checkout@v4
@@ -16,11 +16,10 @@ jobs:
       - name: Installer Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '24' # Utilise la version cible de 2026
 
       - name: Executer le script
         env:
           API_KEY: ${{ secrets.KIOSK_API_KEY }}
           DEVICE_ID: ${{ secrets.KIOSK_DEVICE_ID }}
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         run: node regler_kiosk.js
