@@ -1,44 +1,46 @@
 const API_KEY = process.env.API_KEY;
 const DEVICE_ID = process.env.DEVICE_ID;
 
-const hour = new Date().getUTCHours();
-const BRIGHTNESS_LEVEL = (hour >= 18 || hour < 6) ? 50 : 255; 
-
 async function changerLuminosite() {
     if (!API_KEY || !DEVICE_ID) {
-        console.error("❌ Erreur : API_KEY ou DEVICE_ID manquant dans les Secrets GitHub.");
+        console.error("❌ Secrets manquants.");
         process.exit(1);
     }
 
     const url = 'https://remote.android-kiosk.com/api/v1/command';
     
-    const payload = {
-        "device_id": DEVICE_ID,
-        "command": "set_setting",
-        "settings": {
-            "screen_brightness": BRIGHTNESS_LEVEL
-        }
-    };
+    console.log(`Tentative de connexion vers ${url}...`);
 
     try {
         const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${API_KEY}`,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({
+                "device_id": DEVICE_ID,
+                "command": "set_setting",
+                "settings": { "screen_brightness": 150 }
+            }),
+            // Ajout d'un signal d'abandon après 10 secondes
+            signal: AbortSignal.timeout(10000) 
         });
 
         if (response.ok) {
-            console.log(`✅ Succes ! Luminosite reglee sur ${BRIGHTNESS_LEVEL}.`);
+            console.log("✅ Commande recue par le serveur !");
         } else {
-            const data = await response.json();
-            console.error("❌ Erreur API :", data.message || response.statusText);
+            const data = await response.json().catch(() => ({}));
+            console.error(`❌ Erreur API (${response.status}):`, data.message || response.statusText);
             process.exit(1);
         }
     } catch (error) {
-        console.error("❌ Erreur Reseau :", error.message);
+        if (error.name === 'TimeoutError') {
+            console.error("❌ Erreur : Le serveur a mis trop de temps à répondre.");
+        } else {
+            console.error("❌ Erreur de connexion :", error.message);
+        }
         process.exit(1);
     }
 }
