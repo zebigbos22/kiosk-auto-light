@@ -1,6 +1,6 @@
-const API_KEY = '4664c8b544a246bb9574a10f793f6e7a3603';
-const DEVICE_ID = '60e03916-960b-47f9-883d-68e3e5b628d5'; // Peut être un ID unique ou "all"
-const BRIGHTNESS_LEVEL = 3; // Valeur entre 0 et 255
+const API_KEY = process.env.API_KEY; 
+const DEVICE_ID = process.env.DEVICE_ID;
+const BRIGHTNESS_LEVEL = 2; // Ajustez ici
 
 async function changerLuminosite() {
     const url = 'https://remote.android-kiosk.com/api/v1/command';
