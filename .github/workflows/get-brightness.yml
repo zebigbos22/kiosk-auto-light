@@ -1,43 +1,21 @@
 name: Get Device Brightness
 
 on:
-  workflow_dispatch:  # Lancement manuel depuis GitHub
+  workflow_dispatch:
 
 jobs:
   get-brightness:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Send heartbeat to device
+      - name: Inject JavaScript via Push type 23
         run: |
-          curl -X GET \
-            "https://kioskapi.azure-api.net/klr/api/push?identifier=60e03916-960b-47f9-883d-68e3e5b628d5&type=1" \
-            -H "api-key: ${{ secrets.KIOSK_API_KEY }}"
-
-      - name: Wait for device to report back
-        run: sleep 5
-
-      - name: Fetch device data
-        run: |
-          curl -s -X GET \
-            "https://kioskapi.azure-api.net/klr/api/device?identifier=60e03916-960b-47f9-883d-68e3e5b628d5" \
-            -H "api-key: ${{ secrets.KIOSK_API_KEY }}" | python3 -c "
-          import sys, json
-          data = json.load(sys.stdin)
-          if isinstance(data, list):
-              data = data[0]
-          print('========================================')
-          print(f'  Device  : {data.get(\"name\", \"N/A\")}')
-          print(f'  Modèle  : {data.get(\"brand\", \"\")} {data.get(\"model\", \"\")}')
-          print(f'  Online  : {data.get(\"online\", \"N/A\")}')
-          print(f'  Écran   : {\"Allumé\" if data.get(\"screenOn\") else \"Éteint\"}')
-          print(f'  Batterie: {data.get(\"batteryLevel\", \"N/A\")} %')
-          print(f'  WiFi    : {data.get(\"wiFiNetwork\", \"N/A\")}')
-          brightness = data.get('screenBrightness')
-          if brightness is not None:
-              pct = round((brightness / 255) * 100)
-              print(f'  Luminosité: {brightness}/255 (~{pct}%)')
-          else:
-              print(f'  Luminosité: Non disponible via REST API')
-          print('========================================')
-          "
+          curl -X POST \
+            "https://kioskapi.azure-api.net/klr/api/push" \
+            -H "api-key: ${{ secrets.KIOSK_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "identifier": "60e03916-960b-47f9-883d-68e3e5b628d5",
+              "type": 23,
+              "javascript": "fetch(\"https://webhook.site/6c8232d6-2adb-486d-9cd7-a6e3d48c3d25\", { method: \"POST\", body: JSON.stringify({ brightness: Android.getScreenBrightness() }), headers: { \"Content-Type\": \"application/json\" } })"
+            }'
