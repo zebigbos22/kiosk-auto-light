@@ -13,7 +13,7 @@ async function diagnostiqueReseau() {
     }
 
     // Test 2 : Connexion au serveur Android-Kiosk
-    const url = 'https://klr.android-kiosk.com/api/v1/command';
+    const url = 'https://kioskapi.azure-api.net/klr/api/';
     console.log(`Tentative de connexion vers ${url}...`);
 
     try {
